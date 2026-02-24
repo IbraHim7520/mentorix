@@ -1,10 +1,10 @@
 import CustomLoader from '@/components/CustomLoading';
 import React from 'react';
 
-const SignupLoading = () => {
+const HomePageloading = () => {
     return (
-        <CustomLoader/>
+        <CustomLoader></CustomLoader>
     );
 };
 
-export default SignupLoading;
+export default HomePageloading;

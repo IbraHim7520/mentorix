@@ -1,9 +1,8 @@
+import CustomLoader from "@/components/CustomLoading";
 
 const Signuploading = () => {
     return (
-        <div>
-            
-        </div>
+       <CustomLoader/>
     );
 };
 

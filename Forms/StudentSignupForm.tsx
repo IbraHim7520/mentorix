@@ -1,16 +1,70 @@
 "use client"
-import React from 'react';
+import { Spinner } from '@/components/ui/spinner';
+import { IStudentSignupForm } from '@/Interfaces/studentSignupFormInterface';
+import authClient from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 const StudentSignupForm = () => {
+    const { register, handleSubmit , reset } = useForm<IStudentSignupForm>()
+    const [loading, setLoading] = useState(false);
+    const navigate = useRouter();
+    const uploadImageToCloudinary = async(imageFIle: File)=>{
+        const formData = new FormData();
+        formData.append("image", imageFIle);
+        const URLResponse = await fetch(`${process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_API}`, {
+                method: 'POST',
+                body: formData,
+        })
+        const imageURL = await URLResponse.json();
+        return imageURL.secure_url;
+    }
+
+    const onSubmit = async (data: IStudentSignupForm) => {
+        try {
+            setLoading(true);
+            if (data.Password !== data.ConfirmPassword) {
+                toast.error("Passwords do not match");
+                setLoading(false)
+                 return;
+            }
+
+            let imageURL:string = '' ;
+            if (data.image && data.image.length > 0) {
+                imageURL = await uploadImageToCloudinary(data.image[0]) as string;
+            }
+
+
+            const signupResponse = await authClient.signUp.email({
+                name: data.name,
+                email: data.email,
+                password: data.Password,
+                image: imageURL
+            })
+            if(signupResponse.data?.token){
+                toast.success("Signup Successfull.");
+                setLoading(false);
+                reset();
+                navigate.push("/");
+            }
+        } catch (error) {
+            console.log(error);
+            setLoading(false)
+            toast.error("Failed to signup! Please try again.")
+        }
+    }
     return (
-        <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
-            
+        <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
+
             {/* Full Name */}
             <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700 ml-1">Full Name</label>
-                <input 
-                    type="text" 
-                    placeholder="John Doe" 
+                <input
+                    {...register("name")}
+                    type="text"
+                    placeholder="John Doe"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-sm"
                 />
             </div>
@@ -18,9 +72,10 @@ const StudentSignupForm = () => {
             {/* Email */}
             <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700 ml-1">Email Address</label>
-                <input 
-                    type="email" 
-                    placeholder="name@example.com" 
+                <input
+                    {...register("email")}
+                    type="email"
+                    placeholder="name@example.com"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-sm"
                 />
             </div>
@@ -29,17 +84,19 @@ const StudentSignupForm = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-700 ml-1">Password</label>
-                    <input 
-                        type="password" 
-                        placeholder="••••••••" 
+                    <input
+                        {...register("Password")}
+                        type="password"
+                        placeholder="••••••••"
                         className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-sm"
                     />
                 </div>
                 <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-700 ml-1">Confirm Password</label>
-                    <input 
-                        type="password" 
-                        placeholder="••••••••" 
+                    <input
+                        {...register("ConfirmPassword")}
+                        type="password"
+                        placeholder="••••••••"
                         className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-sm"
                     />
                 </div>
@@ -49,8 +106,9 @@ const StudentSignupForm = () => {
             <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700 ml-1">Profile Picture <span className="text-slate-400 font-normal">(Optional)</span></label>
                 <div className="relative group">
-                    <input 
-                        type="file" 
+                    <input
+                        {...register("image")}
+                        type="file"
                         accept="image/*"
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     />
@@ -66,11 +124,11 @@ const StudentSignupForm = () => {
             </div>
 
             {/* Submit Button */}
-            <button 
-                type="submit" 
-                className="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-sky-600/20 transition-all active:scale-[0.99] mt-2"
+            <button
+                type="submit"
+                className="w-full flex justify-center items-center text-center bg-sky-600 hover:bg-sky-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-sky-600/20 transition-all active:scale-[0.99] mt-2"
             >
-                Get Started
+                {loading ? <Spinner className='size-6'></Spinner> : 'Get Started'}
             </button>
         </form>
     );
