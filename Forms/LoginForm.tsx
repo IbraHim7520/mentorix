@@ -1,9 +1,40 @@
 "use client"
-import React from 'react';
+import { Spinner } from '@/components/ui/spinner';
+import authClient from '@/lib/auth-client';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
+interface ILoginData {
+    email: string,
+    password:string
+}
 const LoginForm = () => {
+    const {register , handleSubmit , reset} = useForm<ILoginData>()
+    const [loading , setLoading] = useState(false)
+    const router = useRouter();
+    const onSubmit = async(data:ILoginData)=>{
+            setLoading(true);
+            const signinResponse = await authClient.signIn.email({
+                email: data.email,
+                password: data.password
+            })
+
+        if(signinResponse.error){
+            reset();
+            setLoading(false)
+            toast.error("Invalid Credentials!");
+            return
+        }
+
+        reset();
+        setLoading(false);
+        toast.success("Sign in successfull.")
+        router.push('/');
+    }
     return (
-        <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+        <form  className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
             
             {/* Email Field */}
             <div className="space-y-1.5">
@@ -11,6 +42,7 @@ const LoginForm = () => {
                 <div className="relative">
                     <input 
                         type="email" 
+                        {...register("email")}
                         placeholder="name@example.com" 
                         className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-sm"
                     />
@@ -23,6 +55,7 @@ const LoginForm = () => {
                     <label className="text-sm font-semibold text-slate-700">Password</label>
                 </div>
                 <input 
+                {...register("password")}
                     type="password" 
                     placeholder="••••••••" 
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/50 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all text-sm"
@@ -43,9 +76,9 @@ const LoginForm = () => {
             {/* Login Button */}
             <button 
                 type="submit" 
-                className="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-sky-600/20 transition-all active:scale-[0.98] mt-2"
+                className="w-full flex justify-center items-center bg-sky-600 hover:bg-sky-700 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-sky-600/20 transition-all active:scale-[0.98] mt-2"
             >
-                Sign In
+                {loading ? <Spinner className='size-6'></Spinner> : "Sign In"}
             </button>
 
             {/* Optional: Social Login Separator */}

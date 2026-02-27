@@ -2,15 +2,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { 
-  LayoutDashboard, 
-  UserCircle, 
-  BookOpen, 
+import {  
   Menu, 
   X, 
   LogOut,
   GraduationCap,
-  Bell,
   CircleUser,
   ChartBarStacked,
   BookmarkCheck,
@@ -24,7 +20,8 @@ import {
 import { cn } from "@/lib/utils";
 import { UserSession } from "@/Utils/clientSideSession";
 import CustomLoader from "@/components/CustomLoading";
-import { IUser } from "@/Interfaces/LoggedInUser.interface";
+import Link from "next/link";
+import Image from "next/image";
 
 interface DashboardLayoutProps {
   admin: React.ReactNode;
@@ -33,29 +30,31 @@ interface DashboardLayoutProps {
   role: "admin" | "student" | "teacher";
 }
 
+
 const adminRoutes = [
-    {title: "Profile" , path: "/dashboard" , icon: <CircleUser />},
-    {title: "Categories", path: "/dashboard/categories" , icon: <ChartBarStacked />},
-    {title: "Manage Bookings" , path: "/dashboard/manage-bookings", icon: <BookmarkCheck />},
-    {title: "Manage Users", path: "/dashboard/manage-users", icon: <Users />},
+    {title: "Profile" , path: "/dashboard" , icon: <CircleUser size={20}/>},
+    {title: "Categories", path: "/dashboard/categories" , icon: <ChartBarStacked size={20}/>},
+    {title: "Manage Bookings" , path: "/dashboard/manage-bookings", icon: <BookmarkCheck size={20}/>},
+    {title: "Manage Users", path: "/dashboard/manage-users", icon: <Users size={20}/>},
 ]
 
 const teacherRoutes = [
-    {title: "Profile" , path: "/dashboard" , icon: <CircleUser />},
-    {title: "Create Session", path: "/dashboard/create-sessions" , icon: <SquarePen />},
-    {title: "Manage Sessions" , path: "/dashboard/my-sessions", icon: <MonitorCog />},
-    {title: "Ratings & Reviews", path: "/dashboard/ratings", icon: <Star />},
+    {title: "Profile" , path: "/dashboard" , icon: <CircleUser size={20}/>},
+    {title: "Create Session", path: "/dashboard/create-sessions" , icon: <SquarePen size={20}/>},
+    {title: "Manage Sessions" , path: "/dashboard/my-sessions", icon: <MonitorCog size={20}/>},
+    {title: "Ratings & Reviews", path: "/dashboard/ratings", icon: <Star size={20}/>},
 ]
 
 const studentRoutes = [
-    {title: "Profile" , path: "/dashboard" , icon: <CircleUser />},
-    {title: "My Bookings", path: "/dashboard/my-bookings" , icon: <Pin /> },
-    {title: "My Reviews" , path: "/dashboard/reviews", icon:<UserStar />},
+    {title: "Profile" , path: "/dashboard" , icon: <CircleUser size={20}/>},
+    {title: "My Bookings", path: "/dashboard/my-bookings" , icon: <Pin size={20}/> },
+    {title: "My Reviews" , path: "/dashboard/reviews", icon:<UserStar size={20}/>},
 ]
 
 const DashboardLayout = ({ admin, student, teacher, role }: DashboardLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const {user , isPending} = UserSession();
+   
     if(isPending){
         return(
             <CustomLoader/>
@@ -87,15 +86,22 @@ const DashboardLayout = ({ admin, student, teacher, role }: DashboardLayoutProps
             
             {
                 user?.role === "ADMIN" ?
-                adminRoutes.map((admRoute, idx)=> <div></div> )
+                adminRoutes.map((admRoute, idx)=> <div key={idx}>
+
+                </div> )
                 :
-                user?.role === "TEACHER" ? teacherRoutes.map((techRoute, idx)=> <div></div>)
+                user?.role === "TEACHER" ? teacherRoutes.map((techRoute, idx)=> <div key={idx} >
+                      <Link href={techRoute.path} key={idx} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl hover:bg-white/5 hover:text-white transition-all">
+                       {techRoute.icon}
+                  {techRoute.title}
+                      </Link>
+                </div>)
                 :
-                studentRoutes.map((stdRoute, idx)=> <div>
-                    <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl hover:bg-white/5 hover:text-white transition-all">
-              <BookOpen size={20} />
-              My Courses
-            </button>
+                studentRoutes.map((stdRoute, idx)=> <div key={idx}>
+                    <Link href={stdRoute.path} key={idx} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl hover:bg-white/5 hover:text-white transition-all">
+              {stdRoute.icon}
+              {stdRoute.title}
+            </Link>
                 </div>) 
             }
           </nav>
@@ -127,28 +133,26 @@ const DashboardLayout = ({ admin, student, teacher, role }: DashboardLayoutProps
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="relative p-2.5 text-slate-500 hover:bg-white hover:shadow-sm border border-transparent hover:border-slate-200 rounded-xl transition-all">
-              <Bell size={20} />
-              <span className="absolute top-2.5 right-2.5 size-2 bg-rose-500 rounded-full border-2 border-white"></span>
-            </button>
-            <div className="size-10 rounded-xl bg-slate-200 border border-slate-300"></div>
+            <div className="size-10 rounded-xl bg-slate-200 border border-slate-300">
+              {/* <Image src={String(user.image)} alt="image" priority quality={100} width={100} height={100}></Image> */}
+            </div>
           </div>
         </header>
 
-        {/* Scrollable Dashboard Section */}
+       
         <div className="flex-1 overflow-y-auto p-6 lg:p-10">
           <div className="max-w-7xl mx-auto">
              {/* Content Slots */}
              <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-               {role === "admin" && admin}
-               {role === "teacher" && teacher}
-               {role === "student" && student}
+               {user?.role === "STUDENT" && student}
+               {user?.role === "TEACHER" && teacher}
+               {user?.role === "ADMIN" && admin}
              </div>
           </div>
         </div>
       </main>
 
-      {/* Dark Overlay for Mobile */}
+    
       {isSidebarOpen && (
         <div 
           className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-40 lg:hidden" 

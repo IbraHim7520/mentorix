@@ -1,6 +1,6 @@
 "use client"
 import { Spinner } from '@/components/ui/spinner';
-import { IStudentSignupForm } from '@/Interfaces/studentSignupFormInterface';
+import { IStudentSignupForm } from '@/Interfaces/forms.interface';
 import authClient from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
@@ -11,9 +11,11 @@ const StudentSignupForm = () => {
     const { register, handleSubmit , reset } = useForm<IStudentSignupForm>()
     const [loading, setLoading] = useState(false);
     const navigate = useRouter();
+
     const uploadImageToCloudinary = async(imageFIle: File)=>{
         const formData = new FormData();
         formData.append("image", imageFIle);
+        formData.append("upload_preset", "tutora");
         const URLResponse = await fetch(`${process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_API}`, {
                 method: 'POST',
                 body: formData,

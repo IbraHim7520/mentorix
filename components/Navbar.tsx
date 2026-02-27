@@ -8,9 +8,12 @@ import CustomLoader from "./CustomLoading";
 import Image from "next/image";
 import { Menu, X, LogOut, User, DoorOpen } from "lucide-react"; // Better icons
 import { cn } from "@/lib/utils";
+import authClient from "@/lib/auth-client";
+import { Spinner } from "./ui/spinner";
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const [logoutLoading , setLogoutLoading] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const pathname = usePathname();
   const { user, isPending } = UserSession();
@@ -36,6 +39,11 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleUserLogout = async()=>{
+    setLogoutLoading(true);
+    await authClient.signOut();
+    setLogoutLoading(false);
+  }
   if (isPending) return <CustomLoader />;
 
  return (
@@ -96,8 +104,8 @@ const Navbar = () => {
                   <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-lg">
                     <User className="size-4" /> Profile
                   </button>
-                  <button className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">
-                    <LogOut className="size-4" /> Logout
+                  <button onClick={()=>handleUserLogout()} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">
+                    {logoutLoading ? <Spinner className="size-4"></Spinner> : <div className="flex justify-center items-center"><LogOut className="size-4" /> Logout</div>}
                   </button>
                   <Link href={"/dashboard"} className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">
                     <DoorOpen className="size-4" /> Dashboard

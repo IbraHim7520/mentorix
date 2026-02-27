@@ -54,7 +54,7 @@ const HomeBanner = () => {
           {/* Main Image Glow Wrapper */}
           <div className="w-full h-full bg-white/40 dark:bg-zinc-900/40 backdrop-blur-sm rounded-[2.5rem] border border-white/50 dark:border-zinc-800 flex items-center justify-center overflow-hidden shadow-2xl shadow-sky-200/20 dark:shadow-none relative group">
 
-            <div className="w-full h-full p-4">
+            <div className="w-full hidden lg:block h-full p-4">
               <Image
                 src={homeBannerImage}
                 priority
