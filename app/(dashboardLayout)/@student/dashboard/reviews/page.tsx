@@ -5,35 +5,44 @@ import { Star, MessageSquare, Loader2 } from "lucide-react";
 import { UserSession } from "@/Utils/clientSideSession";
 
 const ReviewPage = () => {
-  const { user } = UserSession(); // Assuming this is your client-side session hook
+  const { user } = UserSession();
   const [reviews, setReviews] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Wait until user session is available
-    if (!user?.id) return;
+    if (!user?.id) {
+      setIsLoading(false);
+      return;
+    }
 
     const fetchReviews = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(
+        const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKKEND_URL}/api/v1/ratings/my/${user.id}`,
           {
             method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            // This sends the browser's cookies automatically to your backend
-            credentials: "include", 
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            cache: "no-store"
           }
         );
 
-        if (!response.ok) throw new Error("Failed to fetch");
+        const text = await res.text();
+        let data: any = {};
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = {};
+        }
 
-        const result = await response.json();
-        setReviews(result?.data || []);
-      } catch (error) {
-        console.error("Error fetching reviews:", error);
+        if (res.ok && data?.success && Array.isArray(data?.data)) {
+          setReviews(data.data);
+        } else {
+          setReviews([]);
+        }
+      } catch {
+        setReviews([]);
       } finally {
         setIsLoading(false);
       }
@@ -59,7 +68,6 @@ const ReviewPage = () => {
 
           <tbody className="divide-y divide-gray-50">
             {isLoading ? (
-              // Loading State
               <tr>
                 <td colSpan={4} className="p-12 text-center">
                   <div className="flex flex-col items-center gap-2">
@@ -69,7 +77,6 @@ const ReviewPage = () => {
                 </td>
               </tr>
             ) : reviews.length > 0 ? (
-              // Data State
               reviews.map((review: any) => (
                 <tr key={review.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="p-4 font-medium text-gray-900">
@@ -88,12 +95,11 @@ const ReviewPage = () => {
                   </td>
 
                   <td className="p-4 text-right text-xs text-gray-400">
-                    {new Date(review.createdAt).toLocaleDateString()}
+                    {review.createdAt ? new Date(review.createdAt).toLocaleDateString() : "-"}
                   </td>
                 </tr>
               ))
             ) : (
-              // Empty State
               <tr>
                 <td colSpan={4} className="p-12 text-center text-gray-500">
                   <div className="flex flex-col items-center gap-2">

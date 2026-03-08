@@ -5,34 +5,31 @@ import { useEffect, useState } from "react";
 
 const DynamicBookingsPage = () => {
   const params = useParams();
-  const sessionId = params.id;
-  const [bookingdata, setAllBookings] = useState([]);
+  const sessionId = params?.id;
+  const [bookingData, setBookingData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchBookingsData() {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKKEND_URL}/api/v1/bookings/${sessionId}`);
-        const bookings = await res.json();
+    if (!sessionId) return;
 
-        if (bookings.success) {
-          setAllBookings(bookings.data);
-        } else {
-          setAllBookings([]);
-        }
-      } catch (error) {
-        console.error("Failed to fetch bookings:", error);
+    const fetchBookingsData = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKKEND_URL}/api/v1/bookings/${sessionId}`, { credentials: "include" });
+        const data = await res.json();
+        if (data?.success && Array.isArray(data.data)) setBookingData(data.data);
+        else setBookingData([]);
+      } catch {
+        setBookingData([]);
       } finally {
         setIsLoading(false);
       }
-    }
+    };
 
-    if (sessionId) fetchBookingsData();
+    fetchBookingsData();
   }, [sessionId]);
 
   return (
     <div className="container mx-auto py-10 px-4">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-800">Session Bookings</h1>
         <p className="text-gray-500 text-sm mt-1">
@@ -40,7 +37,6 @@ const DynamicBookingsPage = () => {
         </p>
       </div>
 
-      {/* Table Container */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead className="bg-gray-50 border-b border-gray-100">
@@ -54,21 +50,18 @@ const DynamicBookingsPage = () => {
           </thead>
           <tbody className="divide-y divide-gray-50">
             {isLoading ? (
-              // Skeleton/Loading State
               <tr>
                 <td colSpan={5} className="px-6 py-10 text-center text-gray-400">
-                  <div className="animate-pulse flex flex-col items-center">
+                  <div className="animate-pulse flex flex-col items-center gap-2">
                     <div className="h-4 w-48 bg-gray-200 rounded mb-2"></div>
                     <p>Loading attendees...</p>
                   </div>
                 </td>
               </tr>
-            ) : bookingdata.length > 0 ? (
-              bookingdata.map((booking) => (
+            ) : bookingData.length > 0 ? (
+              bookingData.map((booking) => (
                 <tr key={booking.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-900">
-                    {booking.session?.title || "N/A"}
-                  </td>
+                  <td className="px-6 py-4 font-medium text-gray-900">{booking.session?.title || "N/A"}</td>
                   <td className="px-6 py-4">
                     <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-md text-xs font-medium">
                       {booking.session?.category?.name || "General"}
@@ -76,12 +69,8 @@ const DynamicBookingsPage = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-col">
-                      <span className="text-sm font-semibold text-gray-700">
-                        {booking.user?.name || "Anonymous Student"}
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {booking.user?.email || "No email provided"}
-                      </span>
+                      <span className="text-sm font-semibold text-gray-700">{booking.user?.name || "Anonymous Student"}</span>
+                      <span className="text-xs text-gray-400">{booking.user?.email || "No email provided"}</span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -91,7 +80,7 @@ const DynamicBookingsPage = () => {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button 
+                    <button
                       className="text-red-500 hover:text-red-700 text-sm font-semibold hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-red-100"
                       onClick={() => alert(`Cancel booking for ${booking.id}?`)}
                     >
@@ -101,7 +90,6 @@ const DynamicBookingsPage = () => {
                 </tr>
               ))
             ) : (
-              // Empty State
               <tr>
                 <td colSpan={5} className="px-6 py-20 text-center">
                   <p className="text-gray-400 font-medium">No bookings found for this session yet.</p>
