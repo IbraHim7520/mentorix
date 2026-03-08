@@ -1,10 +1,26 @@
 "use client"
 import { Calendar, Clock, Timer, Users, Star, ArrowRight } from "lucide-react";
 import { ISessionFetchedData } from "@/Interfaces/data.interface";
+import { UserSession } from "@/Utils/clientSideSession";
+import Swal from "sweetalert2";
+import ReviewModal from "./ReviewModalBox";
+import { useState } from "react";
 
-const SessionCard = ({ data }: { data: ISessionFetchedData }) => {
+const SessionCard = ({ data , isBooked}: { data: ISessionFetchedData, isBooked: boolean }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const handleReviewSubmit = async (rating: number, comment: string) => {
+        console.log("Submitting to API:", { sessionId: data.id, rating, comment });
+        // Call your API here
+        setIsModalOpen(false);
+    };
+  const {user} = UserSession()
+  const bookingData = {
+    userId:user.id,
+    categoryId: data.categoryId,
+    tutorSessionId: data.id
+  }
   
-  // Helper to format ISO Date to readable string
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
       month: 'short',
@@ -31,7 +47,30 @@ const SessionCard = ({ data }: { data: ISessionFetchedData }) => {
     return `${hours}h ${mins > 0 ? mins + 'm' : ''}`;
   };
   const handleSessionBook = (sessionId:string)=>{
-    alert(sessionId)
+      Swal.fire({
+      title: "Do you want to book the session??",
+      showCancelButton: true,
+      confirmButtonText: "Save",
+    }).then(async(result) => {
+      if (result.isConfirmed) {
+        const bookingResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKKEND_URL}/api/v1/bookings/booking/create`, {
+          method: "POST",
+          headers: {
+             "Content-Type": "application/json",
+          },
+          body: JSON.stringify(bookingData),
+          cache: 'no-store',
+          credentials: "include"
+        })
+        const result = await bookingResponse.json();
+        if(result.success){
+          Swal.fire("Booked!", "", "success");
+        }else{
+          Swal.fire(result.message , "error")
+        }
+      
+      }
+    });
   }
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow duration-300 flex flex-col h-full">
@@ -75,14 +114,39 @@ const SessionCard = ({ data }: { data: ISessionFetchedData }) => {
         </div>
 
         {/* Action Button */}
-        <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
+        {/* <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between">
             <span className="text-lg font-bold text-indigo-600">${data.sessionFee}</span>
-            <button onClick={()=>handleSessionBook(data.id)} className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 group">
+            <button  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors flex items-center gap-2 group">
             Book
             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
             </button>
-        </div>
+        </div> */}
       </div>
+
+
+      <div className="mt-6">
+                {isBooked ? (
+                    <button 
+                        onClick={() => setIsModalOpen(true)}
+                        className="w-full py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-200 rounded-xl hover:bg-emerald-600 hover:text-white transition-all text-sm font-semibold"
+                    >
+                        Give Review
+                    </button>
+                ) : (
+                    <button onClick={()=>handleSessionBook(data.id)} className="w-full py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all text-sm font-semibold">
+                        Book Now
+                    </button>
+                )}
+            </div>
+
+            <ReviewModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                sessionTitle={data.title}
+                userId={user.id}
+                sessionId={data.id}
+                onSubmit={handleReviewSubmit}
+            />
     </div>
   );
 };

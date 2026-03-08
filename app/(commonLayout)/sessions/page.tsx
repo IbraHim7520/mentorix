@@ -1,16 +1,19 @@
 "use client"
 import { Search, Filter, BookOpen } from 'lucide-react';
 import SessionCard from '@/components/SessionCard';
-import { ISessionFetchedData } from '@/Interfaces/data.interface';
+import { IBookingData, ISessionFetchedData } from '@/Interfaces/data.interface';
 import { useEffect, useState } from 'react';
+import { UserSession } from '@/Utils/clientSideSession';
 
 const SessionPage = () => {
     const [allSessions, setAllSessions] = useState<ISessionFetchedData[]>([]);
     const [filteredSessions, setFilteredSessions] = useState<ISessionFetchedData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [bookingData, setBookings] = useState<IBookingData[]>([]); // Typed as any[] or your Booking interface
+    const { user } = UserSession();
 
+    // 1. Fetch All Available Sessions
     useEffect(() => {
-        // Correct way to call async inside useEffect
         const fetchSessions = async () => {
             try {
                 setIsLoading(true);
@@ -22,13 +25,43 @@ const SessionPage = () => {
             } catch (error) {
                 console.error("Failed to fetch sessions:", error);
             } finally {
-                setIsLoading(false);
+                // Only stop loading if we aren't waiting for user booking data
+                if (!user?.id) setIsLoading(false);
             }
         };
 
         fetchSessions();
-    }, []);
+    }, [user?.id]);
 
+    // 2. Fetch User's Specific Bookings to check for "Booked" status
+    useEffect(() => {
+        if (!user?.id) return;
+
+        const fetchMySessionInfo = async () => {
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKKEND_URL}/api/v1/bookings/booking/my/${user.id}`, {
+                    credentials: 'include',
+                    method: 'GET',
+                    cache: "no-store"
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    setBookings(data.data || []);
+                } else {
+                    setBookings([]);
+                }
+            } catch (error) {
+                console.error("Fetch booking error:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchMySessionInfo();
+    }, [user?.id]);
+
+    // 3. Search Logic
     const handleSessionSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         const query = e.target.value.toLowerCase();
         
@@ -75,20 +108,29 @@ const SessionPage = () => {
             {/* Main Content */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
                 {isLoading ? (
-                    /* Basic Loading State (or use your Skeleton here) */
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {[1, 2, 3, 4].map((n) => (
-                            <div key={n} className="h-64 bg-gray-200 animate-pulse rounded-2xl" />
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                            <div key={n} className="h-80 bg-gray-200 animate-pulse rounded-2xl" />
                         ))}
                     </div>
                 ) : filteredSessions.length > 0 ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {filteredSessions.map((session) => (
-                            <SessionCard key={session.id} data={session} />
-                        ))}
+                        {filteredSessions.map((session) => {
+                            // Check if this session ID exists in the user's bookingData
+                            const isBooked = bookingData.some(
+                                (booking) => booking.tutorSessionId === session.id
+                            );
+
+                            return (
+                                <SessionCard 
+                                    key={session.id} 
+                                    data={session} 
+                                    isBooked={isBooked} 
+                                />
+                            );
+                        })}
                     </div>
                 ) : (
-                    /* Empty State */
                     <div className="flex flex-col items-center justify-center py-20 text-center">
                         <div className="bg-white p-6 rounded-full shadow-sm mb-4">
                             <BookOpen size={48} className="text-gray-300" />

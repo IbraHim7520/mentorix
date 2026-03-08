@@ -102,3 +102,26 @@ export interface ISessionFetchedData {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface IBookingData {
+    bookedAt:string
+    category:{
+    id:string,
+    title:string
+    }
+    categoryId:string
+    createdAt:string
+    id:string
+    status:string
+    tutorSession:{
+        date:string,
+        fromTime:string,
+        id:string,
+        title:string,
+        toTime:string
+    }
+
+    tutorSessionId:string
+    updatedAt:string
+    userId:string
+}
