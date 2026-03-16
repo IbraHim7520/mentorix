@@ -23,18 +23,21 @@ export async function proxy(request: NextRequest) {
   const session = await authClient.getSession();
  
 
-  const { pathname } = request.nextUrl;
+  const  path = request.nextUrl.pathname;
 
+  if(path.startsWith("/verify-email")){
+  return NextResponse.next()
+ }
   // 3. Check if the current path is in our protected list
   // We use .startsWith to cover sub-paths if necessary
-  const isProtected = protectedPaths.some((path) => pathname === path);
+  const isProtected = protectedPaths.some((path) => path === path);
 
   if (isProtected && !session) {
     // 4. Redirect to login if no session exists
     const loginUrl = new URL("/login", request.url);
     
     // Optional: Store the attempted URL to redirect back after login
-    loginUrl.searchParams.set("callbackUrl", pathname);
+    loginUrl.searchParams.set("callbackUrl", path);
     
     return NextResponse.redirect(loginUrl);
   }

@@ -17,7 +17,7 @@ const DashboardPage = async () => {
 
   const tutorData = await tutorResponse.json();
 
-  console.log("Tutor Data:", tutorData);
+
 
   return (
 <div className="p-6 bg-gray-50 min-h-screen">

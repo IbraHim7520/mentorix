@@ -1,7 +1,12 @@
-import React from 'react';
+"use client"
 
-const Profile = ({ user }: {user: any}) => {
-  // Assuming 'user' prop contains name, email, bio, avatar, and stats
+import { UserSession } from "@/Utils/clientSideSession";
+import CustomLoader from "./CustomLoading";
+
+const Profile = () => {
+  const {user , isPending } = UserSession()
+  if(isPending) return <CustomLoader />
+  console.log(user)
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Profile Header/Cover Gradient */}
@@ -29,34 +34,19 @@ const Profile = ({ user }: {user: any}) => {
         {/* User Info */}
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h2 className="text-2xl font-bold text-gray-900">{user?.name || "Loading..."}</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{user?.name || "N/A"}</h2>
             <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full uppercase">
-              Verified Tutor
+              Verified {user?.role}
             </span>
           </div>
           <p className="text-gray-500 font-medium">{user?.email || "tutor@example.com"}</p>
         </div>
 
         {/* Bio */}
-        <p className="mt-4 text-gray-600 text-sm leading-relaxed max-w-2xl">
-          {user?.bio || "Expert educator specializing in modern web technologies. Helping students bridge the gap between theory and industry-standard practices."}
-        </p>
+        
 
         {/* Dashboard Stats Row */}
-        <div className="grid grid-cols-3 gap-4 mt-8 py-6 border-y border-gray-50">
-          <div className="text-center">
-            <div className="text-xl font-bold text-gray-900">{user?.totalSessions || 0}</div>
-            <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider">Sessions</div>
-          </div>
-          <div className="text-center border-x border-gray-100">
-            <div className="text-xl font-bold text-gray-900">{user?.totalStudents || 0}</div>
-            <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider">Students</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xl font-bold text-gray-900">★ {user?.rating || "0.0"}</div>
-            <div className="text-xs text-gray-400 uppercase font-semibold tracking-wider">Rating</div>
-          </div>
-        </div>
+        
 
         {/* Meta Info (Join Date, Category) */}
         <div className="mt-6 flex flex-wrap gap-4 text-sm text-gray-500">

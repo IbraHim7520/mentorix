@@ -22,6 +22,14 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_BACKKEND_URL: process.env.NEXT_PUBLIC_BACKKEND_URL,
   },
+  async rewrites(){
+    return [
+      {
+        source: "/api/auth/:path",
+        destination: `${process.env.NEXT_PUBLIC_BACKKEND_URL}/api/auth/:path`
+      }
+    ]
+  }
 };
 
 export default nextConfig;

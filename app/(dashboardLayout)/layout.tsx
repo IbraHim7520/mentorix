@@ -110,10 +110,10 @@ const DashboardLayout = ({ admin, student, teacher }: DashboardLayoutProps) => {
 
           {/* Footer Sidebar Actions */}
           <div className="pt-6 border-t border-slate-800 space-y-1">
-            <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-rose-400 hover:bg-rose-400/10 rounded-xl transition-all">
+            <Link href={"/"} className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-rose-400 hover:bg-rose-400/10 rounded-xl transition-all">
               <LogOut size={20} />
-              Sign Out
-            </button>
+              Go Home
+            </Link>
           </div>
         </div>
       </aside>
